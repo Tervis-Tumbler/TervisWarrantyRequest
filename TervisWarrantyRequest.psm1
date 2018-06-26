@@ -48,17 +48,19 @@ function New-WarrantyRequestLine {
     )
 
     DynamicParam {
+        $DynamicParameters = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
         New-DynamicParameter -Name Size -ValidateSet (
             Get-WarrantyRequestPropertyValues -PropertyName Size
-        )
+        ) -Dictionary $DynamicParameters
 
         New-DynamicParameter -Name Quantity -ValidateSet (
             Get-WarrantyRequestPropertyValues -PropertyName Quantity
-        )
-        #
-        #New-DynamicParameter -Name ManufactureYear -ValidateSet (
-        #    Get-WarrantyRequestPropertyValues -PropertyName ManufactureYear
-        #)
+        ) -Dictionary $DynamicParameters
+        
+        New-DynamicParameter -Name ManufactureYear -ValidateSet (
+            Get-WarrantyRequestPropertyValues -PropertyName ManufactureYear
+        ) -Dictionary $DynamicParameters
+        $DynamicParameters
     }
     process {
         $PSBoundParameters | ConvertFrom-PSBoundParameters
@@ -271,6 +273,7 @@ $WarrantyPropertyToTicketPropertyNameMapping = @{
     Size = "cf_size"
     Quantity = "cf_quantity"
     ManufactureYear = "cf_mfd_year"
+    ResidentialOrBusinessAddress = "cf_residenceorbusiness"
 }
 
 function Get-WarrantyRequestPropertyValues {
@@ -281,7 +284,7 @@ function Get-WarrantyRequestPropertyValues {
     )
     $TicketPropertyName = $WarrantyPropertyToTicketPropertyNameMapping.$PropertyName
     
-    Get-TervisFreshDeskTicketFields | 
+    Get-TervisFreshDeskTicketField | 
     Where-Object Name -EQ $TicketPropertyName |
     Select-Object -ExpandProperty Choices
 }
