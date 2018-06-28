@@ -40,26 +40,28 @@ function ConvertFrom-FreshDeskTicketToWarrantyRequest {
 
 function New-WarrantyRequestLine {
     [CmdletBinding()]
-    param (
-        [Parameter(ValueFromPipelineByPropertyName)]$DesignName,
-
-        [ValidateScript({$_ -in $ReturnReasonToIssueTypeMapping.Keys})]
-        [Parameter(ValueFromPipelineByPropertyName)]$ReturnReason
-    )
-
+    param ()
     DynamicParam {
+        if (-Not (Get-FreshDeskAPIKey)) {
+            Set-TervisFreshDeskEnvironment
+        }
+
         $DynamicParameters = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+        New-DynamicParameter -Name DesignName -ValueFromPipelineByPropertyName -Dictionary $DynamicParameters
+
         New-DynamicParameter -Name Size -ValidateSet (
             Get-WarrantyRequestPropertyValues -PropertyName Size
-        ) -Dictionary $DynamicParameters
+        ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
 
         New-DynamicParameter -Name Quantity -ValidateSet (
             Get-WarrantyRequestPropertyValues -PropertyName Quantity
-        ) -Dictionary $DynamicParameters
+        ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
         
         New-DynamicParameter -Name ManufactureYear -ValidateSet (
             Get-WarrantyRequestPropertyValues -PropertyName ManufactureYear
-        ) -Dictionary $DynamicParameters
+        ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
+
+        New-DynamicParameter -Name ReturnReason -ValueFromPipelineByPropertyName -ValidateScript {$_ -in $ReturnReasonToIssueTypeMapping.Keys} -Dictionary $DynamicParameters
         $DynamicParameters
     }
     process {
@@ -185,52 +187,56 @@ function New-WarrantyParentFreshDeskTicketParameter {
     }
 }
 
-$ReturnReasonToIssueTypeMapping = @{
-    "cracked" = @{ #"02.110.01"
+$ReturnReasonToIssueTypeMapping = [ordered]@{
+    "Cracked" = @{ #"02.110.01"
         cf_issue_type = "02-Product"
         cf_issue_description = ".110 Cracked"
         cf_issue_subcode = ".01-Cracked at Weld"
     }
-    "cracked not at weld" = @{ #"02.110.03"
+    "Cracked not at Weld" = @{ #"02.110.03"
         cf_issue_type = "02-Product"
         cf_issue_description = ".110 Cracked"
         cf_issue_subcode = ".03-No at weld"
     }
-    "cracked stress cracks" = @{ #"02.110.02"
+    "Cracked Stress Cracks" = @{ #"02.110.02"
         cf_issue_type = "02-Product"
         cf_issue_description = ".110 Cracked"
         cf_issue_subcode = ".02-Stress Cracks"
     }
-    "decoration fail" = @{ #"02.600.01"
+    "Decoration Fail" = @{ #"02.600.01"
         cf_issue_type = "02-Product"
         cf_issue_description = ".600 Decoration"
         cf_issue_subcode = ".01-Damaged"
     }
-    "film" = @{ #"02.200.02"
+    "Film" = @{ #"02.200.02"
         cf_issue_type = "02-Product"
         cf_issue_description = ".200 Surface"
         cf_issue_subcode = ".02-Film/Stains"
     }
-    "heat distortion" = @{ #"02.900.00"
+    "Heat Distortion" = @{ #"02.900.00"
         cf_issue_type = "02-Product"
         cf_issue_description = ".900 Deformed"
         cf_issue_subcode = ".01-Deformed"
     }
-    "stainless defect" = @{ #"02.090.95"
+    "Stainless Defect" = @{ #"02.090.95"
         cf_issue_type = "02-Product"
         cf_issue_description = ".090 Supplier"
         cf_issue_subcode = ".95-Poor Thermal Performance"
     }
-    "seal failure" = @{ #"02.100.01"
+    "Seal Failure" = @{ #"02.100.01"
         cf_issue_type = "02-Product"
         cf_issue_description = ".100 - Weld/Seal"
         cf_issue_subcode = ".01-Tumbler in two pieces"
     }
-    "sunscreen" = @{ #"02.200.03"
+    "Sunscreen" = @{ #"02.200.03"
         cf_issue_type = "02-Product"
         cf_issue_description = ".200 Surface"
         cf_issue_subcode = ".03-Sunscreen"
     }
+}
+
+function Get-ReturnReasonIssueTypeMapping {
+    $ReturnReasonToIssueTypeMapping
 }
 
 function New-WarrantyChildFreshDeskTicketParameter {
@@ -274,6 +280,7 @@ $WarrantyPropertyToTicketPropertyNameMapping = @{
     Quantity = "cf_quantity"
     ManufactureYear = "cf_mfd_year"
     ResidentialOrBusinessAddress = "cf_residenceorbusiness"
+    State = "cf_state"
 }
 
 function Get-WarrantyRequestPropertyValues {
@@ -284,7 +291,9 @@ function Get-WarrantyRequestPropertyValues {
     )
     $TicketPropertyName = $WarrantyPropertyToTicketPropertyNameMapping.$PropertyName
     
-    Get-TervisFreshDeskTicketField | 
+    Get-TervisFreshDeskTicketField |
     Where-Object Name -EQ $TicketPropertyName |
-    Select-Object -ExpandProperty Choices
+    Select-Object -ExpandProperty Choices |
+    ConvertTo-Json | #This is a hack to work around a bug where UniversalDashboard will error when these are used as values for an input field withouth this sanitization
+    ConvertFrom-Json
 }
