@@ -54,7 +54,7 @@ function New-WarrantyRequestLine {
         ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
 
         New-DynamicParameter -Name Quantity -Type Int
-        
+
         New-DynamicParameter -Name ManufactureYear -ValidateSet (
             Get-WarrantyRequestPropertyValues -PropertyName ManufactureYear
         ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
@@ -81,7 +81,7 @@ function ConvertFrom-FreshDeskTicketToWarrantyRequestLine {
         }
 
         $WarrantyRequestLineParameters = @{
-            DesignName = $Ticket.custom_fields.cf_design_name
+            Subject = $Ticket.subject
             Size = $Ticket.custom_fields.cf_size
             Quantity = $Ticket.custom_fields.cf_quantitynumber
             ManufactureYear = $Ticket.custom_fields.cf_mfd_year
@@ -264,7 +264,6 @@ function New-WarrantyChildFreshDeskTicketParameter {
                 @{
                     cf_size = $Size
                     cf_quantitynumber = $Quantity
-                    cf_design_name = $DesignName
                     cf_mfd_year = $ManufactureYear
                     cf_source = "Warranty Return Form Internal"
                 } + $IssueTypeFields
