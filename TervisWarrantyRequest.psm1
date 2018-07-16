@@ -53,9 +53,7 @@ function New-WarrantyRequestLine {
             Get-WarrantyRequestPropertyValues -PropertyName Size
         ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
 
-        New-DynamicParameter -Name Quantity -ValidateSet (
-            Get-WarrantyRequestPropertyValues -PropertyName Quantity
-        ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
+        New-DynamicParameter -Name Quantity -Type Int
         
         New-DynamicParameter -Name ManufactureYear -ValidateSet (
             Get-WarrantyRequestPropertyValues -PropertyName ManufactureYear
@@ -81,11 +79,11 @@ function ConvertFrom-FreshDeskTicketToWarrantyRequestLine {
         Where-Object {
             $ReturnReasonToIssueTypeMapping.$_.cf_issue_subcode -eq $Ticket.custom_fields.cf_issue_subcode
         }
-        
+
         $WarrantyRequestLineParameters = @{
             DesignName = $Ticket.custom_fields.cf_design_name
             Size = $Ticket.custom_fields.cf_size
-            Quantity = $Ticket.custom_fields.cf_quantity
+            Quantity = $Ticket.custom_fields.cf_quantitynumber
             ManufactureYear = $Ticket.custom_fields.cf_mfd_year
             ReturnReason = $ReturnReason
         } | Remove-HashtableKeysWithEmptyOrNullValues
@@ -265,7 +263,7 @@ function New-WarrantyChildFreshDeskTicketParameter {
             custom_fields = (
                 @{
                     cf_size = $Size
-                    cf_quantity = $Quantity
+                    cf_quantitynumber = $Quantity
                     cf_design_name = $DesignName
                     cf_mfd_year = $ManufactureYear
                     cf_source = "Warranty Return Form Internal"
@@ -277,7 +275,7 @@ function New-WarrantyChildFreshDeskTicketParameter {
 
 $WarrantyPropertyToTicketPropertyNameMapping = @{
     Size = "cf_size"
-    Quantity = "cf_quantity"
+    Quantity = "cf_quantitynumber"
     ManufactureYear = "cf_mfd_year"
     ResidentialOrBusinessAddress = "cf_residenceorbusiness"
     State = "cf_state"
