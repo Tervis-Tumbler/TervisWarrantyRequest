@@ -53,7 +53,7 @@ function New-WarrantyRequestLine {
             Get-WarrantyRequestPropertyValues -PropertyName Size
         ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
 
-        New-DynamicParameter -Name Quantity -Type Int
+        New-DynamicParameter -Name Quantity -Type Int -Dictionary $DynamicParameters
 
         New-DynamicParameter -Name ManufactureYear -ValidateSet (
             Get-WarrantyRequestPropertyValues -PropertyName ManufactureYear
