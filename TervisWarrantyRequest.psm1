@@ -287,7 +287,7 @@ function Get-WarrantyRequestPropertyValues {
         $PropertyName
     )
     $TicketPropertyName = $WarrantyPropertyToTicketPropertyNameMapping.$PropertyName
-    
+
     Get-TervisFreshDeskTicketField |
     Where-Object Name -EQ $TicketPropertyName |
     Select-Object -ExpandProperty Choices |
