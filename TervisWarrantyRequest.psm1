@@ -48,6 +48,7 @@ function New-WarrantyRequestLine {
 
         $DynamicParameters = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
         New-DynamicParameter -Name Subject -ValueFromPipelineByPropertyName -Dictionary $DynamicParameters
+        New-DynamicParameter -Name DesignName -ValueFromPipelineByPropertyName -Dictionary $DynamicParameters
 
         New-DynamicParameter -Name Size -ValidateSet (
             Get-WarrantyRequestPropertyValues -PropertyName Size
