@@ -11,6 +11,9 @@ function New-WarrantyRequest {
         [Parameter(ValueFromPipelineByPropertyName)][ValidateSet("Residence","Business")]$ResidentialOrBusinessAddress,
         [Parameter(ValueFromPipelineByPropertyName)]$PhoneNumber,
         [Parameter(ValueFromPipelineByPropertyName)]$Email,
+        [Parameter(ValueFromPipelineByPropertyName)]$ShippingMSN,
+        [Parameter(ValueFromPipelineByPropertyName)]$TrackingNumber,
+        [Parameter(ValueFromPipelineByPropertyName)]$Carrier,
         [Parameter(ValueFromPipelineByPropertyName)]$WarrantyLines
     )
     $PSBoundParameters | ConvertFrom-PSBoundParameters
@@ -33,6 +36,9 @@ function ConvertFrom-FreshDeskTicketToWarrantyRequest {
             ResidentialOrBusinessAddress = $Ticket.custom_fields.cf_residenceorbusiness
             PhoneNumber = $Ticket.custom_fields.cf_phonenumber
             Email = $Ticket.custom_fields.cf_email
+            ShippingMSN = $Ticket.custom_fields.cf_shipping_msn
+            TrackingNumber = $Ticket.custom_fields.cf_tracking_number
+            Carrier = $Ticket.custom_fields.cf_shipping_service
         } | Remove-HashtableKeysWithEmptyOrNullValues
         New-WarrantyRequest @WarrantyRequestParameters
     }
