@@ -301,3 +301,12 @@ function Get-WarrantyRequestPropertyValues {
     ConvertTo-Json | #This is a hack to work around a bug where UniversalDashboard will error when these are used as values for an input field withouth this sanitization
     ConvertFrom-Json
 }
+
+function Get-WarrantyRequest {
+    param (
+        [Parameter(Mandatory)]$FreshDeskWarrantyParentTicketID
+    )
+    $WarrantyRequest = Get-FreshDeskTicket -ID $FreshDeskWarrantyParentTicketID |
+    Where-Object {-Not $_.Deleted} |
+    ConvertFrom-FreshDeskTicketToWarrantyRequest
+}
