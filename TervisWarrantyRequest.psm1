@@ -306,7 +306,7 @@ function Get-WarrantyRequest {
     param (
         [Parameter(Mandatory)]$FreshDeskWarrantyParentTicketID
     )
-    $WarrantyRequest = Get-FreshDeskTicket -ID $FreshDeskWarrantyParentTicketID |
+    Get-FreshDeskTicket -ID $FreshDeskWarrantyParentTicketID |
     Where-Object {-Not $_.Deleted} |
     ConvertFrom-FreshDeskTicketToWarrantyRequest
 }
