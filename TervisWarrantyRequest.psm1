@@ -1,5 +1,6 @@
 function New-WarrantyRequest {
     param (
+        [Parameter(ValueFromPipelineByPropertyName)]$ID,
         [Parameter(ValueFromPipelineByPropertyName)]$FirstName,
         [Parameter(ValueFromPipelineByPropertyName)]$LastName,
         [Parameter(ValueFromPipelineByPropertyName)]$BusinessName,
@@ -25,6 +26,7 @@ function ConvertFrom-FreshDeskTicketToWarrantyRequest {
     )
     process {
         $WarrantyRequestParameters = @{
+            ID = $Ticket.ID
             FirstName = $Ticket.custom_fields.cf_first_name
             LastName = $Ticket.custom_fields.cf_last_name
             BusinessName = $Ticket.custom_fields.cf_business_name
