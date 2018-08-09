@@ -50,10 +50,6 @@ function New-WarrantyRequestLine {
     [CmdletBinding()]
     param ()
     DynamicParam {
-        if (-Not (Get-FreshDeskAPIKey)) {
-            Set-TervisFreshDeskEnvironment
-        }
-
         $DynamicParameters = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
         New-DynamicParameter -Name Subject -ValueFromPipelineByPropertyName -Dictionary $DynamicParameters
         New-DynamicParameter -Name DesignName -ValueFromPipelineByPropertyName -Dictionary $DynamicParameters
