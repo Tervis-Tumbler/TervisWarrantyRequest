@@ -55,13 +55,13 @@ function New-WarrantyRequestLine {
         New-DynamicParameter -Name DesignName -ValueFromPipelineByPropertyName -Dictionary $DynamicParameters
 
         New-DynamicParameter -Name Size -ValidateSet (
-            Get-WarrantyRequestPropertyValues -PropertyName Size
+            Get-WarrantyRequestPropertyValues -PropertyName Size -Credential $Cache:FreshDeskCredentials.$User
         ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
 
         New-DynamicParameter -Name Quantity -Type Int -Dictionary $DynamicParameters
 
         New-DynamicParameter -Name ManufactureYear -ValidateSet (
-            Get-WarrantyRequestPropertyValues -PropertyName ManufactureYear
+            Get-WarrantyRequestPropertyValues -PropertyName ManufactureYear -Credential $Cache:FreshDeskCredentials.$User
         ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
 
         New-DynamicParameter -Name ReturnReason -ValueFromPipelineByPropertyName -ValidateScript {$_ -in $ReturnReasonToIssueTypeMapping.Keys} -Dictionary $DynamicParameters
