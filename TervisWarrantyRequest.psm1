@@ -55,13 +55,13 @@ function New-WarrantyRequestLine {
         New-DynamicParameter -Name DesignName -ValueFromPipelineByPropertyName -Dictionary $DynamicParameters
 
         New-DynamicParameter -Name Size -ValidateSet (
-            Get-WarrantyRequestPropertyValues -PropertyName Size -Credential $Cache:FreshDeskCredentials.$User
+            Get-WarrantyRequestPropertyValues -PropertyName Size
         ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
 
         New-DynamicParameter -Name Quantity -Type Int -Dictionary $DynamicParameters
 
         New-DynamicParameter -Name ManufactureYear -ValidateSet (
-            Get-WarrantyRequestPropertyValues -PropertyName ManufactureYear -Credential $Cache:FreshDeskCredentials.$User
+            Get-WarrantyRequestPropertyValues -PropertyName ManufactureYear
         ) -Dictionary $DynamicParameters -ValueFromPipelineByPropertyName
 
         New-DynamicParameter -Name ReturnReason -ValueFromPipelineByPropertyName -ValidateScript {$_ -in $ReturnReasonToIssueTypeMapping.Keys} -Dictionary $DynamicParameters
@@ -98,15 +98,11 @@ function ConvertFrom-FreshDeskTicketToWarrantyRequestLine {
 
 function New-WarrantyParentTicket {
     param (
-        [Parameter(Mandatory,ValueFromPipeline)]$WarrantyRequest,
-        $Credential
+        [Parameter(Mandatory,ValueFromPipeline)]$WarrantyRequest
     )
-    begin {
-        $CredentialParameter = $PSBoundParameters | ConvertFrom-PSBoundParameters -Property Credential -AsHashTable
-    }
     process {
         $RequestorIDParameter = if (-not $WarrantyRequest.Email -and -not $WarrantyRequest.PhoneNumber) {
-            $FreshDeskContact = New-FreshDeskContact -name "$FirstName $LastName" -phone "555-555-5555" @CredentialParameter
+            $FreshDeskContact = New-FreshDeskContact -name "$FirstName $LastName" -phone "555-555-5555"
             @{requester_id = $FreshDeskContact.ID}
         } else {
             @{}
@@ -115,11 +111,11 @@ function New-WarrantyParentTicket {
         $WarrantyParentFreshDeskTicketParameter = $WarrantyRequest |
         New-WarrantyParentFreshDeskTicketParameter
         
-        $WarrantyParentTicket = New-FreshDeskTicket @WarrantyParentFreshDeskTicketParameter @RequestorIDParameter @CredentialParameter
+        $WarrantyParentTicket = New-FreshDeskTicket @WarrantyParentFreshDeskTicketParameter @RequestorIDParameter
         $WarrantyParentTicket
         if ($WarrantyRequest.WarrantyLines) {
             $WarrantyRequest.WarrantyLines | 
-            New-WarrantyChildTicket -WarrantyParentTicket $WarrantyParentTicket @CredentialParameter
+            New-WarrantyChildTicket -WarrantyParentTicket $WarrantyParentTicket
         }
     }
 }
@@ -128,15 +124,11 @@ function New-WarrantyChildTicket {
     param (
         [Parameter(Mandatory,ValueFromPipeline)]$WarrantyLine,
         [Parameter(Mandatory,ParameterSetName="WarrantyParentTicketID")]$WarrantyParentTicketID,
-        [Parameter(Mandatory,ParameterSetName="WarrantyParentTicket")]$WarrantyParentTicket,
-        $Credential
+        [Parameter(Mandatory,ParameterSetName="WarrantyParentTicket")]$WarrantyParentTicket
     )
-    begin {
-        $CredentialParameter = $PSBoundParameters | ConvertFrom-PSBoundParameters -Property Credential -AsHashTable
-    }
     process {
         if (-not $WarrantyParentTicket) {
-            $WarrantyParentTicket = Get-FreshDeskTicket -ID $WarrantyParentTicketID @CredentialParameter
+            $WarrantyParentTicket = Get-FreshDeskTicket -ID $WarrantyParentTicketID
         } 
 
         $WarrantyRequest = $WarrantyParentTicket | 
@@ -150,7 +142,7 @@ function New-WarrantyChildTicket {
         $WarrantyChildFreshDeskTicketParameter = $WarrantyLine |
         New-WarrantyChildFreshDeskTicketParameter @ParametersFromWarantyParent -ParentID $WarrantyParentTicketID
 
-        New-FreshDeskTicket @WarrantyChildFreshDeskTicketParameter -requester_id $WarrantyParentTicket.requester_id @CredentialParameter
+        New-FreshDeskTicket @WarrantyChildFreshDeskTicketParameter -requester_id $WarrantyParentTicket.requester_id
     }
 }
 
@@ -297,13 +289,11 @@ function Get-WarrantyRequestPropertyValues {
     param (
         [ValidateScript({$_ -in $WarrantyPropertyToTicketPropertyNameMapping.Keys})]
         [Parameter(Mandatory)]
-        $PropertyName,
-        $Credential
+        $PropertyName
     )
-    $CredentialParameter = $PSBoundParameters | ConvertFrom-PSBoundParameters -Property Credential -AsHashTable
     $TicketPropertyName = $WarrantyPropertyToTicketPropertyNameMapping.$PropertyName
 
-    Get-TervisFreshDeskTicketField @CredentialParameter |
+    Get-TervisFreshDeskTicketField |
     Where-Object Name -EQ $TicketPropertyName |
     Select-Object -ExpandProperty Choices |
     ConvertTo-Json | #This is a hack to work around a bug where UniversalDashboard will error when these are used as values for an input field withouth this sanitization
@@ -312,11 +302,9 @@ function Get-WarrantyRequestPropertyValues {
 
 function Get-WarrantyRequest {
     param (
-        [Parameter(Mandatory)]$FreshDeskWarrantyParentTicketID,
-        $Credential
+        [Parameter(Mandatory)]$FreshDeskWarrantyParentTicketID
     )
-    $CredentialParameter = $PSBoundParameters | ConvertFrom-PSBoundParameters -Property Credential -AsHashTable
-    Get-FreshDeskTicket -ID $FreshDeskWarrantyParentTicketID @CredentialParameter |
+    Get-FreshDeskTicket -ID $FreshDeskWarrantyParentTicketID |
     Where-Object {-Not $_.Deleted} |
     ConvertFrom-FreshDeskTicketToWarrantyRequest
 }
