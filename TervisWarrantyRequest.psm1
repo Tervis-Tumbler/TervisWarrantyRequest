@@ -15,6 +15,7 @@ function New-WarrantyRequest {
         [Parameter(ValueFromPipelineByPropertyName)]$ShippingMSN,
         [Parameter(ValueFromPipelineByPropertyName)]$TrackingNumber,
         [Parameter(ValueFromPipelineByPropertyName)]$Carrier,
+        [Parameter(ValueFromPipelineByPropertyName)]$Channel,
         [Parameter(ValueFromPipelineByPropertyName)]$WarrantyLines
     )
     $PSBoundParameters | ConvertFrom-PSBoundParameters
@@ -41,6 +42,7 @@ function ConvertFrom-FreshDeskTicketToWarrantyRequest {
             ShippingMSN = $Ticket.custom_fields.cf_shipping_msn
             TrackingNumber = $Ticket.custom_fields.cf_tracking_number
             Carrier = $Ticket.custom_fields.cf_shipping_service
+            Channel = $Ticket.custom_fields.cf_channel
         } | Remove-HashtableKeysWithEmptyOrNullValues
         New-WarrantyRequest @WarrantyRequestParameters
     }
@@ -159,6 +161,7 @@ function New-WarrantyParentFreshDeskTicketParameter {
         [Parameter(ValueFromPipelineByPropertyName)][ValidateSet("Residence","Business")]$ResidentialOrBusinessAddress,
         [Parameter(ValueFromPipelineByPropertyName)]$PhoneNumber,
         [Parameter(ValueFromPipelineByPropertyName)]$Email,
+        [Parameter(ValueFromPipelineByPropertyName)]$Channel,
         [Parameter(ValueFromPipelineByPropertyName)]$WarrantyLines
     )
     process {
@@ -185,6 +188,7 @@ function New-WarrantyParentFreshDeskTicketParameter {
                 cf_phonenumber = $PhoneNumber
                 cf_email = $Email
                 cf_source = "Warranty Return Form Internal"
+                cf_channel = $Channel
 		    } | Remove-HashtableKeysWithEmptyOrNullValues
         } | Remove-HashtableKeysWithEmptyOrNullValues
     }
@@ -283,6 +287,7 @@ $WarrantyPropertyToTicketPropertyNameMapping = @{
     ManufactureYear = "cf_mfd_year"
     ResidentialOrBusinessAddress = "cf_residenceorbusiness"
     State = "cf_state"
+    Channel = "cf_channel"
 }
 
 function Get-WarrantyRequestPropertyValues {
@@ -293,11 +298,29 @@ function Get-WarrantyRequestPropertyValues {
     )
     $TicketPropertyName = $WarrantyPropertyToTicketPropertyNameMapping.$PropertyName
 
-    Get-TervisFreshDeskTicketField |
+    $Choices = Get-TervisFreshDeskTicketField |
     Where-Object Name -EQ $TicketPropertyName |
-    Select-Object -ExpandProperty Choices |
-    ConvertTo-Json | #This is a hack to work around a bug where UniversalDashboard will error when these are used as values for an input field withouth this sanitization
-    ConvertFrom-Json
+    Select-Object -ExpandProperty Choices
+
+    if ($Choices.count) {
+        $Choices |
+        ConvertTo-Json |
+        ConvertFrom-Json
+    } else {
+        $Choices.psobject.Properties.name |
+        ConvertTo-Json |
+        ConvertFrom-Json
+    }
+
+    #$TypeNameOfChoice = (
+    #    $Choices |
+    #    Select-Object -First 1
+    #).gettype() |
+    #Select-Object -ExpandProperty FullName
+    #
+    #$TypeOfChoice = [type]$TypeNameOfChoice
+    #$ArrayTypeOfChoice = $TypeOfChoice.MakeArrayType()
+    #$Choices -as $ArrayTypeOfChoice
 }
 
 function Get-WarrantyRequest {
