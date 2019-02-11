@@ -60,6 +60,7 @@ function New-WarrantyRequestLine {
     param ()
     DynamicParam {
         $DynamicParameters = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+        New-DynamicParameter -Name ID -ValueFromPipelineByPropertyName -Dictionary $DynamicParameters
         New-DynamicParameter -Name Subject -ValueFromPipelineByPropertyName -Dictionary $DynamicParameters
         New-DynamicParameter -Name DesignName -ValueFromPipelineByPropertyName -Dictionary $DynamicParameters
 
@@ -95,6 +96,7 @@ function ConvertFrom-FreshDeskTicketToWarrantyRequestLine {
         }
 
         $WarrantyRequestLineParameters = @{
+            ID = $Ticket.ID
             Subject = $Ticket.subject
             Size = $Ticket.custom_fields.cf_size
             Quantity = $Ticket.custom_fields.cf_quantitynumber
