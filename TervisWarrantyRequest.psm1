@@ -43,6 +43,13 @@ function ConvertFrom-FreshDeskTicketToWarrantyRequest {
             TrackingNumber = $Ticket.custom_fields.cf_tracking_number
             Carrier = $Ticket.custom_fields.cf_shipping_service
             Channel = $Ticket.custom_fields.cf_channel
+            WarrantyLines = if ($Ticket.associated_tickets_list) {
+                $Ticket.associated_tickets_list |
+                ForEach-Object {
+                    Get-FreshDeskTicket -ID $_ |
+                    ConvertFrom-FreshDeskTicketToWarrantyRequestLine
+                }
+            }
         } | Remove-HashtableKeysWithEmptyOrNullValues
         New-WarrantyRequest @WarrantyRequestParameters
     }
