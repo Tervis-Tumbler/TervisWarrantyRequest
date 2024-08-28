@@ -284,6 +284,7 @@ function New-WarrantyChildFreshDeskTicketParameter {
                     cf_quantitynumber = $Quantity
                     cf_mfd_year = $ManufactureYear
                     cf_source = "Warranty Return Form Internal"
+                    cf_parentticketid = "$ParentID"
                 } + $IssueTypeFields
             ) | Remove-HashtableKeysWithEmptyOrNullValues
         } | Remove-HashtableKeysWithEmptyOrNullValues
